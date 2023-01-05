@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<fileset-config file-format-version="1.2.0" simple-config="false" sync-formatter="false">
+  <local-check-config name="maven-checkstyle-plugin google-checks" location="jar:file:/home/piercelab/.m2/repository/com/puppycrawl/tools/checkstyle/10.5.0/checkstyle-10.5.0.jar!/google_checks.xml" type="remote" description="maven-checkstyle-plugin configuration google-checks">
+    <property name="checkstyle.header.file" value="/home/piercelab/workspaces/eclipse/frbny/.metadata/.plugins/org.eclipse.core.resources/.projects/localstack-compose/com.basistech.m2e.code.quality.checkstyleConfigurator/checkstyle-header-google-checks.txt"/>
+    <property name="checkstyle.cache.file" value="${project_loc}/target/checkstyle-cachefile"/>
+    <property name="checkstyle.suppressions.file" value="/home/piercelab/workspaces/eclipse/frbny/.metadata/.plugins/org.eclipse.core.resources/.projects/localstack-compose/com.basistech.m2e.code.quality.checkstyleConfigurator/checkstyle-suppressions-google-checks.xml"/>
+  </local-check-config>
+  <local-check-config name="maven-checkstyle-plugin custom-checks" location="file:/home/piercelab/code/opensource/localstack-compose/checkstyle/custom_checks.xml" type="remote" description="maven-checkstyle-plugin configuration custom-checks">
+    <property name="checkstyle.header.file" value="/home/piercelab/workspaces/eclipse/frbny/.metadata/.plugins/org.eclipse.core.resources/.projects/localstack-compose/com.basistech.m2e.code.quality.checkstyleConfigurator/checkstyle-header-custom-checks.txt"/>
+    <property name="checkstyle.cache.file" value="${project_loc}/target/checkstyle-cachefile"/>
+  </local-check-config>
+  <fileset name="java-sources-google-checks" enabled="true" check-config-name="maven-checkstyle-plugin google-checks" local="true">
+    <file-match-pattern match-pattern="^src/main/java/.*\/.*\.java" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main/resources/.*\.properties" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/test/resources.*\.properties" include-pattern="true"/>
+  </fileset>
+  <fileset name="java-sources-custom-checks" enabled="true" check-config-name="maven-checkstyle-plugin custom-checks" local="true">
+    <file-match-pattern match-pattern="^src/main/java/.*\/.*\.java" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main/resources/.*\.properties" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/test/resources.*\.properties" include-pattern="true"/>
+  </fileset>
+</fileset-config>
