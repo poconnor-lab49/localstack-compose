@@ -1,5 +1,7 @@
 package com.example.playground.service;
 
+import static java.lang.String.format;
+
 import com.example.playground.config.S3TransferManagerConfig;
 import java.net.URI;
 import java.util.List;
@@ -90,8 +92,8 @@ public class S3Service {
    * @param filename file to save
    * @return eTag
    */
-  public String putFile(String filename) {
-    String requestBody = "Test file contents";
+  public String putFile(String filename, String format) {
+    String requestBody = getRequestBody(format);
 
     var putRequest = PutObjectRequest.builder()
         .bucket(this.bucket)
@@ -107,5 +109,22 @@ public class S3Service {
     return upload.completionFuture().join().response().eTag();
   }
 
+  private String getRequestBody(String format) {
+    LOG.info("Selected body format {}", format);
+    String defaultBody = "Test file contents";
 
+    if (format == null) {
+      LOG.warn("No format specified. Using .txt");
+      return defaultBody;
+    }
+
+    return switch (format) {
+      case "xml" -> """
+        <?xml version="1.0"?>
+        <body>I think this is a valid xml file</body>
+        """;
+      case "txt" -> defaultBody;
+      default -> throw new RuntimeException(format("Unsupported file type %s", format));
+    };
+  }
 }

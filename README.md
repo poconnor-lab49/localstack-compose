@@ -28,3 +28,21 @@ docker compose -f docker-compose/docker-compose.yaml up
 This exposes localstack on port `4566` and the demo application on `8088`
 
 When run from a commandline or IDE, the demo application is available on port `8080`
+
+For a quick check, try
+
+```shell script
+./sanity-check.sh 8080
+```
+
+And compare with
+```shell script
+./sanity-check.sh 8088
+```
+
+## Things I've tried
+
+| PROVIDER_OVERRIDE_S3 | AWS_ENDPOINT_OVERRIDE  |
+| ----------------     | ---------------------  |
+| asf                  | http://localstack:4566 |
+| asf                  | http://test-bucket.localstack:4566 |

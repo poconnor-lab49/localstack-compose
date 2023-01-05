@@ -1,7 +1,11 @@
 package com.example.playground.rest;
 
+import static java.util.Objects.requireNonNull;
+import static java.util.Optional.empty;
+
 import com.example.playground.service.S3Service;
 import java.util.List;
+import java.util.Optional;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -61,7 +65,7 @@ public class S3Resource {
   }
 
   /**
-   * Fetch a file from S3.
+   * Save a file to S3.
    *
    * @param filename the filename to get
    * @return contents of the file
@@ -69,10 +73,22 @@ public class S3Resource {
   @PUT
   @Produces(MediaType.TEXT_PLAIN)
   public String putFile(@RestPath String filename) {
-    LOG.info("Fetching {}", filename);
+    requireNonNull(filename);
+    LOG.info("Saving a test file {}", filename);
 
-    var etag = s3Service.putFile(filename);
+    var extension = getExtension(filename);
+
+    var etag = s3Service.putFile(filename, extension.orElse("txt"));
 
     return etag;
   }
+
+  private Optional<String> getExtension(String filename) {
+    int dotIndex = filename.lastIndexOf('.');
+    if (dotIndex == -1) {
+      return empty();
+    }
+    return Optional.of(filename.substring(dotIndex + 1));
+  }
+
 }
