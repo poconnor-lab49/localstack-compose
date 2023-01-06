@@ -95,6 +95,41 @@ Success!!
 $ docker compose -f docker-compose/docker-compose-minimal down
 ```
 
+#### Wireshark capture
+
+Capture for `curl -H "Host: test-bucket.localhost.localstack.cloud" http://localhost.localstack.cloud:4566/testfile.txt`
+
+```txt
+GET /testfile.txt HTTP/1.1
+Host: test-bucket.localhost.localstack.cloud
+User-Agent: curl/7.87.0
+Accept: */*
+
+HTTP/1.1 200 
+content-type: binary/octet-stream
+Content-Length: 30
+Server: Werkzeug/2.1.2 Python/3.10.8
+Date: Fri, 06 Jan 2023 19:53:21 GMT
+x-amz-version-id: null
+ETag: "182f7c225d23326ab0d40a45bc742925"
+last-modified: Fri, 06 Jan 2023 19:53:01 GMT
+x-amzn-requestid: 8bjiYJqgGYZdBnszLHwaMB3hQ3wsOmwS2wSaqQdTH0zEkE8Ydmxh
+Connection: close
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: HEAD,GET,PUT,POST,DELETE,OPTIONS,PATCH
+Access-Control-Allow-Headers: authorization,cache-control,content-length,content-md5,content-type,etag,location,x-amz-acl,x-amz-content-sha256,x-amz-date,x-amz-request-id,x-amz-security-token,x-amz-tagging,x-amz-target,x-amz-user-agent,x-amz-version-id,x-amzn-requestid,x-localstack-target,amz-sdk-invocation-id,amz-sdk-request
+Access-Control-Expose-Headers: etag,x-amz-version-id
+x-amz-request-id: AA5E586414227106
+x-amz-id-2: MzRISOwyjmnupAA5E5864142271067/JypPGXLh0OVFGcJaaO3KW/hRAqKOpIEEp
+accept-ranges: bytes
+content-language: en-US
+date: Fri, 06 Jan 2023 19:53:21 GMT
+server: hypercorn-h11
+
+Text file body
+
+```
+
 ### Run with ASF
 
 Uncomment `PROVIDER_OVERRIDE_S3: asf` at line 15 in _docker-compose/docker-compose-minimal_
@@ -137,3 +172,26 @@ $ curl -H "Host: test-bucket.localhost.localstack.cloud" http://localhost.locals
 ```
 
 FAILURE :(
+
+#### Wireshark capture
+
+Capture for `curl -H "Host: test-bucket.localhost.localstack.cloud" http://localhost.localstack.cloud:4566/testfile.txt`
+
+```txt
+GET /testfile.txt HTTP/1.1
+Host: test-bucket.localhost.localstack.cloud
+User-Agent: curl/7.87.0
+Accept: */*
+
+HTTP/1.1 404 
+Content-Type: application/xml
+Content-Length: 245
+x-amz-request-id: I7SC618TVR8RG5GTV0N3U4UF7T3ZOHK6IBCJE96GE28CNLAEDNNQ
+x-amz-id-2: MzRISOwyjmnupI7SC618TVR8RG5GTV0N3U4UF7T3ZOHK6IBCJE96GE28CNLAEDNNQ7/JypPGXLh0OVFGcJaaO3KW/hRAqKOpIEEp
+Connection: close
+date: Fri, 06 Jan 2023 19:57:24 GMT
+server: hypercorn-h11
+
+<?xml version='1.0' encoding='utf-8'?>
+<Error><Code>NoSuchBucket</Code><Message>The specified bucket does not exist</Message><RequestId>LRQXDRX5FM6MQW2O6GQAZL4JKHAEFSUA0YQJW61TTNG32MIHOFMS</RequestId><BucketName>testfile.txt</BucketName></Error>
+```
