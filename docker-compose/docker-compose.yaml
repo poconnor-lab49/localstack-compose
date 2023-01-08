@@ -11,8 +11,6 @@ services:
       - 4566
     networks:
       demo:
-        aliases:
-          - test-bucket.s3.localhost.localstack.cloud
     environment:
       PROVIDER_OVERRIDE_S3: asf
       EAGER_SERVICE_LOADING: 1
@@ -20,6 +18,25 @@ services:
       DEBUG: ${DEBUG_LOCALSTACK:-0}
     volumes:
       - ./aws:/etc/localstack/init/ready.d
+  ### 
+  # Nginx
+  # proxy connections to localstack
+  ###
+  nginx:
+    image: nginx:${NGINX_VERSION}
+    ports:
+      - 8181:8181
+    expose:
+      - 8181
+    networks:
+      demo:
+        aliases:
+          - test-bucket.s3.localhost.localstack.cloud
+    volumes:
+      - ./nginx/conf.d/nginx-localstack.conf:/etc/nginx/conf.d/localstack.conf:ro
+      - ./nginx/conf.d/proxy.conf:/etc/nginx/conf.d/proxy.conf:ro
+    depends_on:
+      - localstack
   demo:
     image: local/localstack-compose-jvm:edge
     ports:
@@ -29,6 +46,6 @@ services:
     networks:
       demo:
     environment:
-      S3_ENDPOINT_OVERRIDE: http://s3.localhost.localstack.cloud:4566
+      S3_ENDPOINT_OVERRIDE: http://s3.localhost.localstack.cloud:8181
 networks:
   demo:
