@@ -1,5 +1,14 @@
 # bug: S3 ASF Provider does not appear to support virtual-host style requests
 
+[Localstack Bug report](https://github.com/localstack/localstack/issues/7449)
+
+> NOTE: This was not actually a bug with localstack
+
+See also:
+- `no_proxy` discussion:  https://github.com/aws/aws-sdk-java-v2/discussions/3632
+- `no_proxy` issue: https://github.com/awslabs/aws-c-http/issues/413
+- [aws-crt-java github source](https://github.com/awslabs/aws-crt-java)
+
 ## Current Behavior
 
 Using the S3 ASF provider, trying to fetch an object using S3 virtual-host style requests like
