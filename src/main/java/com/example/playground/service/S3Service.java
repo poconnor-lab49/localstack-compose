@@ -14,12 +14,13 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.Tag;
-import software.amazon.awssdk.transfer.s3.Download;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 
 /**
  * S3 Services.
@@ -46,10 +47,14 @@ public class S3Service {
 
     LOG.info("Configuring S3TranferManger with region={} and endpoint={}", region, endpoint);
 
+    // FIXME: CRT client does not set Host header correctly. Missing port.
+    var s3Client = S3AsyncClient.crtBuilder()
+        .credentialsProvider(() -> AwsBasicCredentials.create("localstack", "localstack"))
+        .endpointOverride(URI.create(endpoint))
+        .build();
+
     this.s3TransferManager = S3TransferManager.builder()
-        .s3ClientConfiguration(conf -> conf.endpointOverride(URI.create(endpoint))
-            .credentialsProvider(() -> AwsBasicCredentials.create("localstack", "localstack"))
-            .region(Region.of(region)))
+        .s3Client(s3Client)
         .build();
 
     this.s3Client = S3Client.builder().endpointOverride(URI.create(endpoint))
@@ -66,9 +71,13 @@ public class S3Service {
   public ResponseBytes<GetObjectResponse> getFile(String filename) {
     LOG.info("Fetching {} from {}", filename, bucket);
     // Initiate the transfer
-    Download<ResponseBytes<GetObjectResponse>> download = s3TransferManager
-        .download(d -> d.getObjectRequest(g -> g.bucket(this.bucket).key(filename))
-            .responseTransformer(AsyncResponseTransformer.toBytes()));
+
+    var d = DownloadRequest.builder().getObjectRequest(t -> t.bucket(bucket)
+          .key(filename)
+          .build())
+        .responseTransformer(AsyncResponseTransformer.toBytes()).build();
+
+    var download = s3TransferManager.download(d);
 
     return download.completionFuture().join().result();
   }

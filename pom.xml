@@ -15,7 +15,7 @@
         <quarkus.platform.version>2.15.2.Final</quarkus.platform.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.0.0-M7</surefire-plugin.version>
-        <awssdk.version>2.18.38</awssdk.version>
+        <aws.sdk.version>2.19.12</aws.sdk.version>
         <checkstyle.version>10.5.0</checkstyle.version>
     </properties>
     <dependencyManagement>
@@ -30,7 +30,7 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>bom</artifactId>
-                <version>${awssdk.version}</version>
+                <version>${aws.sdk.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -52,7 +52,11 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3-transfer-manager</artifactId>
-            <version>${awssdk.version}-PREVIEW</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk.crt</groupId>
+            <artifactId>aws-crt</artifactId>
+            <version>0.21.0</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.slf4j</groupId>
