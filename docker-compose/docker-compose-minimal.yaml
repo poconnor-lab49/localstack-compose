@@ -4,7 +4,8 @@ services:
   # localstack home: https://github.com/localstack/localstack
   ###
   localstack:
-    image: local/localstack:1.3.2.dev0
+    # image: local/localstack:1.3.2.dev0
+    image: localstack/localstack:latest
     ports:
       - 4566:4566
     expose:
@@ -12,7 +13,7 @@ services:
     networks:
       curl:
     environment:
-      # PROVIDER_OVERRIDE_S3: asf
+      PROVIDER_OVERRIDE_S3: asf
       EAGER_SERVICE_LOADING: 1
       SERVICES: s3
       DEBUG: ${DEBUG_LOCALSTACK:-0}
