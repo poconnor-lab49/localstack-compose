@@ -40,108 +40,14 @@ And compare with
 ./sanity-check.sh 8088
 ```
 
-## Things I've tried
+## Notes
 
-Clone and build localstack `master` at commit `d3f51d516af88ab56b06f29ca30bb4142595c8d4`
+There seems to be a bug in AWS CRT or HTTP libraries.
+Both the CRT and default `S3AsyncClient`s succeed when we manually add the localstack port to the `Host` header using an nginx proxy.
+The default S3AsyncClient works without the `Host` mangling and does not need to go through nginx.
 
-```shell script
-$ cd ../
-$ git clone git@github.com:localstack/localstack.git
-$ cd localstack
-$ make clean install
-$ make docker-build
-$ docker tag localstack/localstack:latest local/localstack:1.3.2.dev0
-```
+To run with the CRT client, you'll need to target the nginx proxy by setting `S3_ENDPOINT_OVERRIDE: http://s3.localhost.localstack.cloud:8181`
 
-### Run without ASF
+With the default client, both `S3_ENDPOINT_OVERRIDE: http://s3.localhost.localstack.cloud:8181` and `S3_ENDPOINT_OVERRIDE: http://s3.localhost.localstack.cloud:4566` should work.
 
-```shell script
-$ docker compose -f docker-compose/docker-compose-minimal up
-```
-
-Then test endpoints
-
-```shell script
-$ aws --endpoint http://localhost.localstack.cloud:4566 s3api list-buckets \
-     && aws --endpoint http://localhost.localstack.cloud:4566 s3api create-bucket --bucket test-bucket
-$ echo "Text file body" >> testfile.txt
-$ curl -T testfile.txt http://localhost.localstack.cloud:4566/test-bucket/testfile.txt
-$ aws --endpoint http://localhost.localstack.cloud:4566 s3api list-objects --bucket test-bucket
-{
-    "Contents": [
-        {
-            "Key": "testfile.txt",
-            "LastModified": "2023-01-06T16:44:57+00:00",
-            "ETag": "\"05e863e3ae1d9452c450d9f43333d3fe\"",
-            "Size": 15,
-            "StorageClass": "STANDARD",
-            "Owner": {
-                "DisplayName": "webfile",
-                "ID": "75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a"
-            }
-        }
-    ]
-}
-
-$ curl http://localhost.localstack.cloud:4566/test-bucket/testfile.txt
-Text file body
-$ curl -H "Host: test-bucket.localhost.localstack.cloud" http://localhost.localstack.cloud:4566/testfile.txt
-Text file body
-```
-
-Success!!
-
-```shell script
-$ docker compose -f docker-compose/docker-compose-minimal down
-```
-
-### Run with ASF
-
-Uncomment `PROVIDER_OVERRIDE_S3: asf` at line 15 in _docker-compose/docker-compose-minimal_
-
-```shell script
-$ docker compose -f docker-compose/docker-compose-minimal up
-```
-
-Then test endpoints
-
-```shell script
-$ aws --endpoint http://s3.localhost.localstack.cloud:4566 s3api list-buckets \
-     && aws --endpoint http://s3.localhost.localstack.cloud:4566 s3api create-bucket --bucket test-bucket
-{
-    "Buckets": [],
-    "Owner": {
-        "DisplayName": "webfile",
-        "ID": "bcaf1ffd86f41161ca5fb16fd081034f"
-    }
-}
-{
-    "Location": "/test-bucket"
-}
-$ echo $(date --iso-8601=seconds) >| testfile.txt
-$ curl -T testfile.txt http://s3.localhost.localstack.cloud:4566/test-bucket/testfile.txt
-<?xml version='1.0' encoding='utf-8'?>
-<PutObjectOutput />
-$ aws --endpoint http://s3.localhost.localstack.cloud:4566 s3api list-objects --bucket test-bucket
-{
-    "Contents": [
-        {
-            "Key": "testfile.txt",
-            "LastModified": "2023-01-06T16:44:57+00:00",
-            "ETag": "\"05e863e3ae1d9452c450d9f43333d3fe\"",
-            "Size": 15,
-            "StorageClass": "STANDARD",
-            "Owner": {
-                "DisplayName": "webfile",
-                "ID": "75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a"
-            }
-        }
-    ]
-}
-$ curl http://s3.localhost.localstack.cloud:4566/test-bucket/testfile.txt
-Text file body
-$ curl -H "Host: test-bucket.s3.localhost.localstack.cloud" http://s3.localhost.localstack.cloud:4566/testfile.txt
-<?xml version='1.0' encoding='utf-8'?>
-<Error><Code>NoSuchBucket</Code><Message>The specified bucket does not exist</Message><RequestId>CC1D26J86EMA9PP8UJY4AMKUBPS0E188KTPMO8HQVECZ58J04LKF</RequestId><BucketName>testfile.txt</BucketName></Error>
-```
-
+See [src/main/java/com/example/playground/service/S3Service.java#51](./src/main/java/com/example/playground/service/S3Service.java)

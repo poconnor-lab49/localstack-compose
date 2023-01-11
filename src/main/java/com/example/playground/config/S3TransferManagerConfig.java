@@ -1,19 +1,29 @@
 package com.example.playground.config;
 
 import io.smallrye.config.ConfigMapping;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import java.util.Optional;
 
 /**
- * Config for {@link S3TransferManager}.
+ * Config for AWS S3.
  *
  */
-@ConfigMapping(prefix = "s3")
+@ConfigMapping(prefix = "aws.s3")
 public interface S3TransferManagerConfig {
 
   String region();
 
   String bucket();
 
-  String endpointOverride();
+  Client client();
+
+  /**
+   * S3 Client configuration.
+   *
+   */
+  interface Client {
+    Optional<String> endpointOverride();
+
+    Optional<String> type();
+  }
 
 }

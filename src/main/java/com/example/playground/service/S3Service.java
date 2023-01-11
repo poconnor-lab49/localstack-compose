@@ -33,7 +33,7 @@ public class S3Service {
   private final S3TransferManager s3TransferManager;
   private final S3Client s3Client;
 
-  @ConfigProperty(name = "s3.bucket", defaultValue = "test-bucket")
+  @ConfigProperty(name = "aws.s3.bucket", defaultValue = "test-bucket")
   String bucket;
 
   /**
@@ -41,25 +41,20 @@ public class S3Service {
    *
    * @param s3Config transfer manager configuration
    */
-  public S3Service(S3TransferManagerConfig s3Config) {
+  public S3Service(S3TransferManagerConfig s3Config, S3AsyncClient s3Client) {
     var region = s3Config.region();
-    var endpoint = s3Config.endpointOverride();
+    var endpoint = s3Config.client().endpointOverride()
+        .orElseThrow(() -> new RuntimeException("Requiring an endpoint override for now"));
 
     LOG.info("Configuring S3TranferManger with region={} and endpoint={}", region, endpoint);
 
-    // FIXME: CRT client does not set Host header correctly. Missing port.
-    var s3Client = S3AsyncClient.crtBuilder()
-        .credentialsProvider(() -> AwsBasicCredentials.create("localstack", "localstack"))
+    this.s3TransferManager = S3TransferManager.builder().s3Client(s3Client).build();
+
+    this.s3Client = S3Client.builder()
         .endpointOverride(URI.create(endpoint))
-        .build();
-
-    this.s3TransferManager = S3TransferManager.builder()
-        .s3Client(s3Client)
-        .build();
-
-    this.s3Client = S3Client.builder().endpointOverride(URI.create(endpoint))
         .credentialsProvider(() -> AwsBasicCredentials.create("localstack", "localstack"))
-        .region(Region.of(region)).build();
+        .region(Region.of(region))
+        .build();
   }
 
   /**
@@ -70,7 +65,6 @@ public class S3Service {
    */
   public ResponseBytes<GetObjectResponse> getFile(String filename) {
     LOG.info("Fetching {} from {}", filename, bucket);
-    // Initiate the transfer
 
     var d = DownloadRequest.builder().getObjectRequest(t -> t.bucket(bucket)
           .key(filename)
@@ -135,5 +129,44 @@ public class S3Service {
       case "txt" -> defaultBody;
       default -> throw new RuntimeException(format("Unsupported file type %s", format));
     };
+  }
+
+  static class S3AsyncClientProducer {
+    private static final Logger LOG = LoggerFactory.getLogger(S3AsyncClientProducer.class);
+
+    String endpointOverride;
+
+    public S3AsyncClientProducer(S3TransferManagerConfig s3Config) {
+      LOG.info("Creating producer");
+      this.endpointOverride = s3Config.client().endpointOverride()
+          .orElseThrow(() -> new RuntimeException("Requiring an endpoint override for now"));
+    }
+
+    @ApplicationScoped
+    S3AsyncClient s3CrtAsyncClient(
+        @ConfigProperty(name = "aws.s3.client.type", defaultValue = "classic") String clientType) {
+      LOG.info("Supplying S3 client using endpoint {}", endpointOverride);
+
+      var defaultClient = S3AsyncClient.builder()
+          .credentialsProvider(() -> AwsBasicCredentials.create("localstack", "localstack"))
+          .endpointOverride(URI.create(endpointOverride)).build();
+
+      if (clientType == null) {
+        LOG.warn("No client type selected. Using default client.");
+        return defaultClient;
+      }
+      
+      return switch (clientType) {
+        case "crt" -> {
+          LOG.info("Using CRT Client");
+          yield S3AsyncClient.crtBuilder()
+            .credentialsProvider(() -> AwsBasicCredentials.create("localstack", "localstack"))
+            .endpointOverride(URI.create(endpointOverride)).build();
+        }
+        case "classic" -> defaultClient;
+        default -> throw new RuntimeException(format("Unknown client type %s", clientType));
+      };
+    }
+
   }
 }
