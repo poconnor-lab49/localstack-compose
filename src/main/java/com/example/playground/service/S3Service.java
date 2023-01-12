@@ -144,7 +144,7 @@ public class S3Service {
 
     @ApplicationScoped
     S3AsyncClient s3CrtAsyncClient(
-        @ConfigProperty(name = "aws.s3.client.type", defaultValue = "classic") String clientType) {
+        @ConfigProperty(name = "aws.s3.client.type", defaultValue = "legacy") String clientType) {
       LOG.info("Supplying S3 client using endpoint {}", endpointOverride);
 
       var defaultClient = S3AsyncClient.builder()
@@ -161,9 +161,10 @@ public class S3Service {
           LOG.info("Using CRT Client");
           yield S3AsyncClient.crtBuilder()
             .credentialsProvider(() -> AwsBasicCredentials.create("localstack", "localstack"))
-            .endpointOverride(URI.create(endpointOverride)).build();
+            .endpointOverride(URI.create(endpointOverride))
+            .build();
         }
-        case "classic" -> defaultClient;
+        case "legacy" -> defaultClient;
         default -> throw new RuntimeException(format("Unknown client type %s", clientType));
       };
     }

@@ -16,6 +16,7 @@
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.0.0-M7</surefire-plugin.version>
         <aws.sdk.version>2.19.12</aws.sdk.version>
+        <aws.sdk.crt.version>0.21.0</aws.sdk.crt.version>
         <checkstyle.version>10.5.0</checkstyle.version>
     </properties>
     <dependencyManagement>
@@ -56,7 +57,7 @@
         <dependency>
             <groupId>software.amazon.awssdk.crt</groupId>
             <artifactId>aws-crt</artifactId>
-            <version>0.21.0</version>
+            <version>${aws.sdk.crt.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.slf4j</groupId>
