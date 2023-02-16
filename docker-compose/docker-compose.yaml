@@ -4,7 +4,7 @@ services:
   # localstack home: https://github.com/localstack/localstack
   ###
   localstack:
-    image: localstack/localstack:latest
+    image: localstack/localstack:${LOCALSTACK_VERSION}
     ports:
       - 4566:4566
     expose:

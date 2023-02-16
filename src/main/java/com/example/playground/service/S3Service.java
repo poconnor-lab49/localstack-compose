@@ -46,9 +46,12 @@ public class S3Service {
     var endpoint = s3Config.client().endpointOverride()
         .orElseThrow(() -> new RuntimeException("Requiring an endpoint override for now"));
 
-    LOG.info("Configuring S3TranferManger with region={} and endpoint={}", region, endpoint);
+    LOG.info("Configuring S3TranferManger with region={}, endpoint={} and client={}", region,
+        endpoint, s3Client.getClass());
 
-    this.s3TransferManager = S3TransferManager.builder().s3Client(s3Client).build();
+    this.s3TransferManager = S3TransferManager.builder()
+        .s3Client(s3Client)
+        .build();
 
     this.s3Client = S3Client.builder()
         .endpointOverride(URI.create(endpoint))
@@ -129,45 +132,5 @@ public class S3Service {
       case "txt" -> defaultBody;
       default -> throw new RuntimeException(format("Unsupported file type %s", format));
     };
-  }
-
-  static class S3AsyncClientProducer {
-    private static final Logger LOG = LoggerFactory.getLogger(S3AsyncClientProducer.class);
-
-    String endpointOverride;
-
-    public S3AsyncClientProducer(S3TransferManagerConfig s3Config) {
-      LOG.info("Creating producer");
-      this.endpointOverride = s3Config.client().endpointOverride()
-          .orElseThrow(() -> new RuntimeException("Requiring an endpoint override for now"));
-    }
-
-    @ApplicationScoped
-    S3AsyncClient s3CrtAsyncClient(
-        @ConfigProperty(name = "aws.s3.client.type", defaultValue = "legacy") String clientType) {
-      LOG.info("Supplying S3 client using endpoint {}", endpointOverride);
-
-      var defaultClient = S3AsyncClient.builder()
-          .credentialsProvider(() -> AwsBasicCredentials.create("localstack", "localstack"))
-          .endpointOverride(URI.create(endpointOverride)).build();
-
-      if (clientType == null) {
-        LOG.warn("No client type selected. Using default client.");
-        return defaultClient;
-      }
-      
-      return switch (clientType) {
-        case "crt" -> {
-          LOG.info("Using CRT Client");
-          yield S3AsyncClient.crtBuilder()
-            .credentialsProvider(() -> AwsBasicCredentials.create("localstack", "localstack"))
-            .endpointOverride(URI.create(endpointOverride))
-            .build();
-        }
-        case "legacy" -> defaultClient;
-        default -> throw new RuntimeException(format("Unknown client type %s", clientType));
-      };
-    }
-
   }
 }
