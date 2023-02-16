@@ -11,6 +11,8 @@ services:
       - 4566
     networks:
       demo:
+        aliases:
+          - test-bucket.s3.localhost.localstack.cloud
     environment:
       PROVIDER_OVERRIDE_S3: asf
       EAGER_SERVICE_LOADING: 1
@@ -30,8 +32,6 @@ services:
       - 8181
     networks:
       demo:
-        aliases:
-          - test-bucket.s3.localhost.localstack.cloud
     volumes:
       - ./nginx/conf.d/nginx-localstack.conf:/etc/nginx/conf.d/localstack.conf:ro
       - ./nginx/conf.d/proxy.conf:/etc/nginx/conf.d/proxy.conf:ro
@@ -46,6 +46,8 @@ services:
     networks:
       demo:
     environment:
-      S3_ENDPOINT_OVERRIDE: http://s3.localhost.localstack.cloud:8181
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: localstack
+      AWS_SECRET_ACCESS_KEY: localstack
 networks:
   demo:

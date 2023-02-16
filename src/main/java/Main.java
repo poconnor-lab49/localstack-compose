@@ -8,8 +8,7 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 
 /**
- * Minimal reproducer for bug
- *
+ * Minimal reproducer for bug.
  */
 public class Main {
   private static final String BUCKET = "test-bucket";
@@ -20,7 +19,7 @@ public class Main {
     var endpoint = "http://s3.localhost.localstack.cloud:4566";
 
     // change this to `S3AsyncClient.builder()` and everything works
-//    var client = S3AsyncClient.builder()
+    // var client = S3AsyncClient.builder()
     var client = S3AsyncClient.crtBuilder()
         .credentialsProvider(() -> AwsBasicCredentials.create("localstack", "localstack"))
         .endpointOverride(URI.create(endpoint))

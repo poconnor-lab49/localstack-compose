@@ -2,6 +2,11 @@
 
 Configuring an application to use virtual host style addressing with localstack in docker compose.
 
+Working through several bugs in the AWS SDK v2
+
+- `Host` header: https://github.com/aws/aws-sdk-java-v2/issues/3682
+- NO_PROXY: TODO
+
 ## Developer Quickstart
 
 You need java 17 to build this project.
@@ -25,29 +30,28 @@ $ docker build -f src/main/docker/Dockerfile.jvm -t local/localstack-compose-jvm
 docker compose -f docker-compose/docker-compose.yaml up
 ```
 
-This exposes localstack on port `4566` and the demo application on `8088`
+This exposes localstack on port `4566` and the demo application on port `8088`.
 
-When run from a commandline or IDE, the demo application is available on port `8080`
+When run from a commandline or IDE, the demo application is available on port `8080`.
 
 For a quick check, try
 
 ```shell script
-./sanity-check.sh 8080
+./sanity-check.sh
 ```
 
-And compare with
+and compare with
+
 ```shell script
 ./sanity-check.sh 8088
 ```
 
 ## Notes
 
-There seems to be a bug in AWS CRT or HTTP libraries.
-Both the CRT and default `S3AsyncClient`s succeed when we manually add the localstack port to the `Host` header using an nginx proxy.
-The default S3AsyncClient works without the `Host` mangling and does not need to go through nginx.
+The `Host` header issue from https://github.com/aws/aws-sdk-java-v2/issues/3682 was resolved in AWS SDK version `2.20.x`.
 
-To run with the CRT client, you'll need to target the nginx proxy by setting `S3_ENDPOINT_OVERRIDE: http://s3.localhost.localstack.cloud:8181`
+The NO_PROXY issue has not been reproduced yet
 
-With the default client, both `S3_ENDPOINT_OVERRIDE: http://s3.localhost.localstack.cloud:8181` and `S3_ENDPOINT_OVERRIDE: http://s3.localhost.localstack.cloud:4566` should work.
+The `Main` class is just there to quickly reproduce the issue.
+It is not maintained.
 
-See [src/main/java/com/example/playground/service/S3Service.java#51](./src/main/java/com/example/playground/service/S3Service.java)
